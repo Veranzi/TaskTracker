@@ -1,9 +1,21 @@
 "use server";
 
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { upsertAppUser } from "@/lib/db/queries/users";
+
+// Build the absolute origin from the incoming request — so signup on localhost
+// gets a localhost confirmation link, signup on production gets the prod URL.
+async function originFromRequest(): Promise<string> {
+  const h = await headers();
+  const forwardedHost = h.get("x-forwarded-host") ?? h.get("host") ?? "localhost:3000";
+  const forwardedProto =
+    h.get("x-forwarded-proto") ??
+    (forwardedHost.startsWith("localhost") ? "http" : "https");
+  return `${forwardedProto}://${forwardedHost}`;
+}
 
 const SignupSchema = z
   .object({
@@ -46,11 +58,16 @@ export async function signupAction(
 
   const { name, email, password } = parsed.data;
   const supabase = await createClient();
+  const origin = await originFromRequest();
 
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
-    options: { data: { name } },
+    options: {
+      data: { name },
+      // Dev vs prod: confirmation link points back to wherever signup happened.
+      emailRedirectTo: `${origin}/auth/callback`,
+    },
   });
 
   if (error) {
