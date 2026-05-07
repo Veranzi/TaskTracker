@@ -1,36 +1,98 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Pulse
 
-## Getting Started
+Internal task tracker for our team. Built with Next.js 16, Supabase, Drizzle, and Tailwind v4.
 
-First, run the development server:
+## Stack
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- **Next.js 16** (App Router, React 19) + TypeScript
+- **Tailwind v4** + shadcn/ui (added in Step 2) — slate base, gold accent, dark mode default
+- **Supabase** for Auth + Postgres + Realtime
+- **Drizzle ORM** for type-safe queries and migrations
+
+No RLS, no multi-tenant — single shared workspace, auth middleware enforces "must be logged in".
+
+## Local setup
+
+### 1. Create a Supabase project
+
+1. Sign up at [supabase.com](https://supabase.com) and create a new project (free tier is fine).
+2. Wait for provisioning (~2 min).
+
+### 2. Grab credentials
+
+In the Supabase dashboard:
+
+- **Project Settings → API** → copy the Project URL and `anon` key.
+- **Project Settings → Database → Connection string → Transaction pooler** → copy the URL (port 6543). Replace `[YOUR-PASSWORD]` with the DB password you set during project creation.
+
+### 3. Configure environment
+
+```sh
+cp .env.example .env.local
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Fill in:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```
+DATABASE_URL=postgresql://postgres.PROJECT_REF:PASSWORD@aws-0-REGION.pooler.supabase.com:6543/postgres
+NEXT_PUBLIC_SUPABASE_URL=https://PROJECT_REF.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 4. Install & migrate
 
-## Learn More
+```sh
+pnpm install
+pnpm db:generate    # creates migration SQL in ./drizzle
+pnpm db:push        # applies schema directly (use this in dev)
+```
 
-To learn more about Next.js, take a look at the following resources:
+> Use `db:push` in development for fast iteration. Use `db:generate` + `db:migrate` for production-style versioned migrations.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 5. Run
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```sh
+pnpm dev
+```
 
-## Deploy on Vercel
+Open <http://localhost:3000> and visit `/health` to confirm DB connectivity.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Useful scripts
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| Script | What it does |
+| --- | --- |
+| `pnpm dev` | Start the dev server |
+| `pnpm build` / `pnpm start` | Production build & run |
+| `pnpm db:generate` | Generate a new migration from schema changes |
+| `pnpm db:push` | Apply schema directly (dev) |
+| `pnpm db:migrate` | Run pending migrations (production) |
+| `pnpm db:studio` | Open Drizzle Studio for browsing data |
+
+## Deploy to Vercel
+
+1. Push this repo to GitHub.
+2. In Vercel, import the repo. Set the root directory to `pulse/` if you imported the parent.
+3. Add the three env vars from `.env.local` to Vercel project settings.
+4. Deploy.
+
+To run migrations against production, run `pnpm db:migrate` locally with your production `DATABASE_URL` set, or wire it into a CI job.
+
+## Project layout
+
+```
+pulse/
+├── app/
+│   ├── health/route.ts     # DB health check
+│   ├── layout.tsx
+│   ├── page.tsx
+│   └── globals.css
+├── lib/
+│   ├── db/
+│   │   ├── schema.ts       # Drizzle tables: users, projects, tasks, ...
+│   │   └── client.ts       # Postgres client + drizzle()
+│   └── env.ts              # Zod-validated env access (server-only)
+├── drizzle.config.ts
+└── drizzle/                # generated migrations (after db:generate)
+```
+
+The full structure (auth pages, sidebar, board view, etc.) fills in across Steps 2–9.
