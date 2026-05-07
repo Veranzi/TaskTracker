@@ -73,22 +73,24 @@ export default async function InboxPage() {
         />
       </header>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
         <KpiCard
           label="Unassigned"
           value={kpis.unassigned}
           sublabel="tasks available"
           accent
         />
+        <KpiCard label="My tasks" value={kpis.myActive} sublabel="active" />
+        <KpiCard label="Our tasks" value={kpis.ourActive} sublabel="team active" />
         <KpiCard
-          label="In Progress"
-          value={kpis.inProgress}
-          sublabel="my tasks"
+          label="My closed tasks"
+          value={kpis.myClosed}
+          sublabel="resolved + closed"
         />
         <KpiCard
-          label="Completed"
-          value={kpis.completed}
-          sublabel="my closed tasks"
+          label="Our closed tasks"
+          value={kpis.ourClosed}
+          sublabel="team resolved + closed"
         />
       </div>
 

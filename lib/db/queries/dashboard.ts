@@ -14,31 +14,51 @@ import { ACTIVE_STATUSES, DONE_STATUSES } from "./tasks";
 
 export type Kpis = {
   unassigned: number;
-  inProgress: number;
-  completed: number;
+  myActive: number;
+  ourActive: number;
+  myClosed: number;
+  ourClosed: number;
 };
 
 export async function getKpis(userId: string): Promise<Kpis> {
-  const [unassigned, inProgress, completed] = await Promise.all([
-    db
-      .select({ n: count() })
-      .from(tasks)
-      .where(and(isNull(tasks.assigneeId), inArray(tasks.status, ACTIVE_STATUSES))),
-    db
-      .select({ n: count() })
-      .from(tasks)
-      .where(and(eq(tasks.assigneeId, userId), eq(tasks.status, "in_progress"))),
-    db
-      .select({ n: count() })
-      .from(tasks)
-      .where(
-        and(eq(tasks.assigneeId, userId), inArray(tasks.status, DONE_STATUSES)),
-      ),
-  ]);
+  const [unassigned, myActive, ourActive, myClosed, ourClosed] =
+    await Promise.all([
+      db
+        .select({ n: count() })
+        .from(tasks)
+        .where(
+          and(isNull(tasks.assigneeId), inArray(tasks.status, ACTIVE_STATUSES)),
+        ),
+      db
+        .select({ n: count() })
+        .from(tasks)
+        .where(
+          and(
+            eq(tasks.assigneeId, userId),
+            inArray(tasks.status, ACTIVE_STATUSES),
+          ),
+        ),
+      db
+        .select({ n: count() })
+        .from(tasks)
+        .where(inArray(tasks.status, ACTIVE_STATUSES)),
+      db
+        .select({ n: count() })
+        .from(tasks)
+        .where(
+          and(eq(tasks.assigneeId, userId), inArray(tasks.status, DONE_STATUSES)),
+        ),
+      db
+        .select({ n: count() })
+        .from(tasks)
+        .where(inArray(tasks.status, DONE_STATUSES)),
+    ]);
   return {
     unassigned: unassigned[0]?.n ?? 0,
-    inProgress: inProgress[0]?.n ?? 0,
-    completed: completed[0]?.n ?? 0,
+    myActive: myActive[0]?.n ?? 0,
+    ourActive: ourActive[0]?.n ?? 0,
+    myClosed: myClosed[0]?.n ?? 0,
+    ourClosed: ourClosed[0]?.n ?? 0,
   };
 }
 
