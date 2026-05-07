@@ -3,6 +3,7 @@ import { listActiveProjects } from "@/lib/db/queries/projects";
 import { listAppUsers } from "@/lib/db/queries/users";
 import {
   listMyActive,
+  listOthersActive,
   listUnassignedActive,
 } from "@/lib/db/queries/tasks";
 import {
@@ -21,6 +22,7 @@ import { WorkloadDonut } from "@/components/dashboard/workload-donut";
 import { DailyCompletedChart } from "@/components/dashboard/daily-completed-chart";
 import { WeeklyTrendChart } from "@/components/dashboard/weekly-trend-chart";
 import { NewTaskDialog } from "@/components/dashboard/new-task-dialog";
+import { TeamActivity } from "@/components/dashboard/team-activity";
 
 export const metadata = { title: "Dashboard · Pulse" };
 
@@ -30,6 +32,7 @@ export default async function InboxPage() {
     kpis,
     unassigned,
     mine,
+    others,
     focus,
     workload,
     daily,
@@ -40,6 +43,7 @@ export default async function InboxPage() {
     getKpis(user.id),
     listUnassignedActive(),
     listMyActive(user.id),
+    listOthersActive(user.id),
     getMyFocus(user.id),
     getMyWorkload(user.id),
     getMyDailyCompleted(user.id),
@@ -127,6 +131,8 @@ export default async function InboxPage() {
           <WorkloadDonut slices={workload} />
         </div>
       </div>
+
+      <TeamActivity tasks={others} />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <DailyCompletedChart data={daily} />

@@ -1,5 +1,5 @@
 import "server-only";
-import { and, asc, desc, eq, inArray, isNull } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNotNull, isNull, ne } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import {
   projects,
@@ -89,6 +89,22 @@ export async function listMyActive(userId: string): Promise<DashboardTask[]> {
       and(eq(tasks.assigneeId, userId), inArray(tasks.status, ACTIVE_STATUSES)),
     )
     .orderBy(asc(tasks.dueDate), desc(tasks.createdAt))
+    .limit(LIST_CAP);
+  return rowsToDashboardTasks(rows);
+}
+
+export async function listOthersActive(
+  userId: string,
+): Promise<DashboardTask[]> {
+  const rows = await runBaseQuery()
+    .where(
+      and(
+        isNotNull(tasks.assigneeId),
+        ne(tasks.assigneeId, userId),
+        inArray(tasks.status, ACTIVE_STATUSES),
+      ),
+    )
+    .orderBy(asc(users.name), asc(tasks.dueDate), desc(tasks.createdAt))
     .limit(LIST_CAP);
   return rowsToDashboardTasks(rows);
 }
