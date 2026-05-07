@@ -71,11 +71,15 @@ function runBaseQuery() {
     .leftJoin(users, eq(tasks.assigneeId, users.id));
 }
 
+// Soft cap — well above what an internal team of 5 will reasonably accumulate,
+// but prevents runaway queries if someone bulk-imports. The panel scrolls.
+const LIST_CAP = 200;
+
 export async function listUnassignedActive(): Promise<DashboardTask[]> {
   const rows = await runBaseQuery()
     .where(and(isNull(tasks.assigneeId), inArray(tasks.status, ACTIVE_STATUSES)))
     .orderBy(asc(tasks.dueDate), desc(tasks.createdAt))
-    .limit(20);
+    .limit(LIST_CAP);
   return rowsToDashboardTasks(rows);
 }
 
@@ -85,6 +89,6 @@ export async function listMyActive(userId: string): Promise<DashboardTask[]> {
       and(eq(tasks.assigneeId, userId), inArray(tasks.status, ACTIVE_STATUSES)),
     )
     .orderBy(asc(tasks.dueDate), desc(tasks.createdAt))
-    .limit(20);
+    .limit(LIST_CAP);
   return rowsToDashboardTasks(rows);
 }
