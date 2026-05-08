@@ -38,7 +38,7 @@ export function WeeklyTrendChart({ data }: { data: WeeklyPoint[] }) {
               tickLine={false}
               axisLine={false}
               tick={{ fill: "var(--muted-foreground)", fontSize: 11 }}
-              width={32}
+              width={36}
             />
             <Tooltip
               contentStyle={{
