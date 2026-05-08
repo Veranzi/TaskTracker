@@ -1,5 +1,5 @@
 import "server-only";
-import { eq } from "drizzle-orm";
+import { and, eq, ne } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { users } from "@/lib/db/schema";
 
@@ -10,6 +10,13 @@ export async function upsertAppUser(input: {
   name: string;
   avatarUrl?: string | null;
 }) {
+  // Remove any stale row with the same email but a different id — this happens
+  // when a Supabase auth user is deleted and recreated (new UUID, same email).
+  // Without this, the insert below would crash on the email unique constraint.
+  await db
+    .delete(users)
+    .where(and(eq(users.email, input.email), ne(users.id, input.id)));
+
   await db
     .insert(users)
     .values({
