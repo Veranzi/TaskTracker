@@ -19,8 +19,8 @@ export function WeeklyTrendChart({ data }: { data: WeeklyPoint[] }) {
         <h3 className="font-semibold tracking-tight">Tasks by week</h3>
         <span className="text-xs text-muted-foreground">last 5 weeks</span>
       </div>
-      <div className="mt-3 h-[180px]">
-        <ResponsiveContainer width="100%" height="100%">
+      <div className="mt-3">
+        <ResponsiveContainer width="100%" height={180}>
           <BarChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: -16 }}>
             <CartesianGrid
               vertical={false}

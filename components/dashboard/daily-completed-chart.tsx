@@ -20,8 +20,8 @@ export function DailyCompletedChart({ data }: { data: DailyPoint[] }) {
         <h3 className="font-semibold tracking-tight">Daily tasks completed</h3>
         <span className="text-xs text-muted-foreground">last 7 days</span>
       </div>
-      <div className="mt-3 h-[180px]">
-        <ResponsiveContainer width="100%" height="100%">
+      <div className="mt-3">
+        <ResponsiveContainer width="100%" height={180}>
           <AreaChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: -16 }}>
             <defs>
               <linearGradient id="completedGrad" x1="0" y1="0" x2="0" y2="1">

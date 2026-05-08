@@ -16,7 +16,7 @@ export function WorkloadDonut({ slices }: { slices: WorkloadSlice[] }) {
     <div className="rounded-lg border border-border bg-card p-5 flex flex-col">
       <h3 className="font-semibold tracking-tight">Workload by status</h3>
       <div className="relative mt-2 h-[180px]">
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height={180}>
           <PieChart>
             <Pie
               data={data}
