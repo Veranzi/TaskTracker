@@ -68,6 +68,16 @@ export async function createTaskAction(
 
 export async function selfAssignAction(taskId: string): Promise<void> {
   const user = await requireUser();
+  // Defensive mirror — covers any path that bypassed signup/login (e.g.
+  // accounts created via the Supabase dashboard) so the FK update doesn't fail.
+  await upsertAppUser({
+    id: user.id,
+    email: user.email ?? "",
+    name:
+      (user.user_metadata?.name as string | undefined) ??
+      user.email?.split("@")[0] ??
+      "Member",
+  });
   await db
     .update(tasks)
     .set({ assigneeId: user.id, updatedAt: new Date() })
